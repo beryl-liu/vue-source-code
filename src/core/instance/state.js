@@ -48,7 +48,9 @@ export function proxy (target: Object, sourceKey: string, key: string) {
 export function initState (vm: Component) {
   vm._watchers = []
   const opts = vm.$options
+  // 将props数据转化成响应式，注册到vue实例中
   if (opts.props) initProps(vm, opts.props)
+  // 将选项中的methods 注入到vue实例，在注入之前先判断命名是否与prop中重名，并对命名进行了规范，即不能以下划线和$开头
   if (opts.methods) initMethods(vm, opts.methods)
   if (opts.data) {
     initData(vm)
@@ -109,6 +111,8 @@ function initProps (vm: Component, propsOptions: Object) {
 
 function initData (vm: Component) {
   let data = vm.$options.data
+  // 初始化_data，组件中data是函数，调用函数返回结果
+  // 否则直接返回data
   data = vm._data = typeof data === 'function'
     ? getData(data, vm)
     : data || {}
@@ -121,10 +125,12 @@ function initData (vm: Component) {
     )
   }
   // proxy data on instance
+  // 获取data中的所有属性
   const keys = Object.keys(data)
   const props = vm.$options.props
   const methods = vm.$options.methods
   let i = keys.length
+  // 判断data中的属性是否和props，methods 重名
   while (i--) {
     const key = keys[i]
     if (process.env.NODE_ENV !== 'production') {
@@ -142,10 +148,12 @@ function initData (vm: Component) {
         vm
       )
     } else if (!isReserved(key)) {
+      // 将当前属性注入到vue实例中
       proxy(vm, `_data`, key)
     }
   }
   // observe data
+  // 响应式处理
   observe(data, true /* asRootData */)
 }
 
@@ -272,6 +280,7 @@ function initMethods (vm: Component, methods: Object) {
         )
       }
     }
+    // noop 空对象
     vm[key] = methods[key] == null ? noop : bind(methods[key], vm)
   }
 }

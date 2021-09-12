@@ -14,7 +14,8 @@ export function initProvide (vm: Component) {
 }
 
 export function initInjections (vm: Component) {
-  const result = resolveInject(vm.$options.inject, vm)
+  // 找到所有的inject属性，并且该属性在provide属性中提供出来了
+  const result = resolveInject(vm.$options.inject, vm) 
   if (result) {
     observerState.shouldConvert = false
     Object.keys(result).forEach(key => {
