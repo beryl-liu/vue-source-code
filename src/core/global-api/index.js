@@ -28,22 +28,25 @@ export function initGlobalAPI (Vue: GlobalAPI) {
       )
     }
   }
+  // 初始化 Vue.config 对象
   Object.defineProperty(Vue, 'config', configDef)
 
   // exposed util methods.
   // NOTE: these are not considered part of the public API - avoid relying on
   // them unless you are aware of the risk.
+  // 这些工具方法不视作全局API的一部分，除非你已经意识到某些风险，否则不要去依赖他们，主要是vue内部去使用
   Vue.util = {
     warn,
     extend,
     mergeOptions,
     defineReactive
   }
-
+  // 静态方法 set/delete/nextTick
   Vue.set = set
   Vue.delete = del
   Vue.nextTick = nextTick
-
+  // 初始化Vue.options对象，并给其扩展
+  // components/directives/filters
   Vue.options = Object.create(null)
   ASSET_TYPES.forEach(type => {
     Vue.options[type + 's'] = Object.create(null)
@@ -52,11 +55,14 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   // this is used to identify the "base" constructor to extend all plain-object
   // components with in Weex's multi-instance scenarios.
   Vue.options._base = Vue
-
+  // 设置keep-alive组件
   extend(Vue.options.components, builtInComponents)
-
+  // 注册Vue.use()用来注册插件
   initUse(Vue)
+  // 注册VUe.mixin() 实现混入
   initMixin(Vue)
+  // 注册Vue.extend() 基于传入的options返回一个组件的构造函数
   initExtend(Vue)
+  // 注册Vue.directive()、Vue.component()、Vue.filter()
   initAssetRegisters(Vue)
 }
