@@ -4,25 +4,28 @@ import type Watcher from './watcher'
 import { remove } from '../util/index'
 
 let uid = 0
-
+// Dep是个可观察对象，可以有多个指令订阅它
 /**
  * A dep is an observable that can have multiple
  * directives subscribing to it.
  */
 export default class Dep {
+  // 静态属性 watcher对象
   static target: ?Watcher;
+  // dep实例id
   id: number;
+  // dep实例对应的watcher对象/订阅者数组
   subs: Array<Watcher>;
 
   constructor () {
     this.id = uid++
     this.subs = []
   }
-
+  // 添加新的订阅者watcher对象
   addSub (sub: Watcher) {
     this.subs.push(sub)
   }
-
+  // 移除订阅者
   removeSub (sub: Watcher) {
     remove(this.subs, sub)
   }
