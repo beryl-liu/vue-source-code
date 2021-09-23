@@ -48,14 +48,17 @@ export default class Dep {
 // the current target watcher being evaluated.
 // this is globally unique because there could be only one
 // watcher being evaluated at any time.
+
 Dep.target = null
 const targetStack = []
-
+// 入栈并将当前的watcher赋值给Dep.target
+// 父子组件嵌套的时候先把父组件对应的watcher入栈，再去处理子组件的watcher，子组件的处理完毕后，再把父组件对应的watcher出栈，继续操作
 export function pushTarget (_target: Watcher) {
   if (Dep.target) targetStack.push(Dep.target)
   Dep.target = _target
 }
 
 export function popTarget () {
+  // 出栈
   Dep.target = targetStack.pop()
 }

@@ -71,6 +71,8 @@ export default class Watcher {
     if (typeof expOrFn === 'function') {
       this.getter = expOrFn
     } else {
+      // expOrFn是字符串的时候，例如 watch：{ 'person.name':function... }
+      // parsePath('person.name')返回一个函数 获取person.name的值
       this.getter = parsePath(expOrFn)
       if (!this.getter) {
         this.getter = function () {}
@@ -85,6 +87,8 @@ export default class Watcher {
     this.value = this.lazy
       ? undefined
       : this.get()
+
+    // this.lazy 延迟执行 computed watcher 时为true
   }
 
   /**
@@ -156,10 +160,12 @@ export default class Watcher {
   update () {
     /* istanbul ignore else */
     if (this.lazy) {
+
       this.dirty = true
     } else if (this.sync) {
       this.run()
     } else {
+      // 渲染watcher
       queueWatcher(this)
     }
   }
