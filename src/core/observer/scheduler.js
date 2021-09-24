@@ -36,7 +36,7 @@ function resetSchedulerState () {
  * Flush both queues and run the watchers.
  */
 function flushSchedulerQueue () {
-  flushing = true
+  flushing = true // 正在处理watcher的队列
   let watcher, id
 
   // Sort queue before flush.
@@ -124,6 +124,7 @@ function callActivatedHooks (queue) {
  * Jobs with duplicate IDs will be skipped unless it's
  * pushed when the queue is being flushed.
  */
+
 export function queueWatcher (watcher: Watcher) {
   const id = watcher.id
   if (has[id] == null) {
@@ -140,6 +141,7 @@ export function queueWatcher (watcher: Watcher) {
       queue.splice(i + 1, 0, watcher)
     }
     // queue the flush
+    // 当前队列是否正在执行
     if (!waiting) {
       waiting = true
       nextTick(flushSchedulerQueue)

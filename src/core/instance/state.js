@@ -355,6 +355,7 @@ export function stateMixin (Vue: Class<Component>) {
     if (options.immediate) {
       cb.call(vm, watcher.value)
     }
+    // 返回取消监听的方法
     return function unwatchFn () {
       watcher.teardown()
     }
