@@ -58,6 +58,7 @@ export function _createElement (
     return createEmptyVNode()
   }
   // object syntax in v-bind
+  // <component is=""></component>
   if (isDef(data) && isDef(data.is)) {
     tag = data.is
   }
@@ -84,8 +85,10 @@ export function _createElement (
     children.length = 0
   }
   if (normalizationType === ALWAYS_NORMALIZE) {
+    // 返回一维数组 处理用户传入的render
     children = normalizeChildren(children)
   } else if (normalizationType === SIMPLE_NORMALIZE) {
+    // 把二维数组转换成一维数组
     children = simpleNormalizeChildren(children)
   }
   let vnode, ns
@@ -100,6 +103,8 @@ export function _createElement (
       )
     } else if (isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
       // component
+      // 查找自定义组件构造函数的声明
+      // 根据Ctor创建组件的VNode
       vnode = createComponent(Ctor, data, context, children, tag)
     } else {
       // unknown or unlisted namespaced elements

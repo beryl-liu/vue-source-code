@@ -69,13 +69,16 @@ function createKeyToOldIdx (children, beginIdx, endIdx) {
 export function createPatchFunction (backend) {
   let i, j
   const cbs = {}
-
+  // modules 节点的属性 事件 样式的操作
+  // nodeOps 节点操作 操作DOM的api
   const { modules, nodeOps } = backend
 
   for (i = 0; i < hooks.length; ++i) {
+    // cbs['update'] = []
     cbs[hooks[i]] = []
     for (j = 0; j < modules.length; ++j) {
       if (isDef(modules[j][hooks[i]])) {
+        // cbs['update'] = [updateAttrs,updateClass,update...]
         cbs[hooks[i]].push(modules[j][hooks[i]])
       }
     }
@@ -139,9 +142,11 @@ export function createPatchFunction (backend) {
           )
         }
       }
+      // ns：命名空间
       vnode.elm = vnode.ns
         ? nodeOps.createElementNS(vnode.ns, tag)
         : nodeOps.createElement(tag, vnode)
+      // 设置样式作用域
       setScope(vnode)
 
       /* istanbul ignore if */
@@ -175,6 +180,7 @@ export function createPatchFunction (backend) {
         inPre--
       }
     } else if (isTrue(vnode.isComment)) {
+      // 是否是注释节点
       vnode.elm = nodeOps.createComment(vnode.text)
       insert(parentElm, vnode.elm, refElm)
     } else {
@@ -274,10 +280,12 @@ export function createPatchFunction (backend) {
   }
 
   function invokeCreateHooks (vnode, insertedVnodeQueue) {
+    // 调用VNode的钩子函数
     for (let i = 0; i < cbs.create.length; ++i) {
       cbs.create[i](emptyNode, vnode)
     }
     i = vnode.data.hook // Reuse variable
+    // 调用组件的钩子函数
     if (isDef(i)) {
       if (isDef(i.create)) i.create(emptyNode, vnode)
       if (isDef(i.insert)) insertedVnodeQueue.push(vnode)
@@ -372,7 +380,8 @@ export function createPatchFunction (backend) {
       removeNode(vnode.elm)
     }
   }
-
+  // diff 算法
+  // 更新新旧节点的子节点
   function updateChildren (parentElm, oldCh, newCh, insertedVnodeQueue, removeOnly) {
     let oldStartIdx = 0
     let newStartIdx = 0
@@ -388,38 +397,52 @@ export function createPatchFunction (backend) {
     // to ensure removed elements stay in correct relative positions
     // during leaving transitions
     const canMove = !removeOnly
-
+    // 当新节点和老节点都没有遍历完成
     while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
       if (isUndef(oldStartVnode)) {
+        // 获取老的开始节点是否有值，如果没有值，则获取下一个老节点作为开始节点
         oldStartVnode = oldCh[++oldStartIdx] // Vnode has been moved left
       } else if (isUndef(oldEndVnode)) {
+        // 获取老的结束节点是否有值，如果没有值，则获取上一个老节点作为开始节点
         oldEndVnode = oldCh[--oldEndIdx]
       } else if (sameVnode(oldStartVnode, newStartVnode)) {
+        // 直接将该VNode节点将那些patchVnode
         patchVnode(oldStartVnode, newStartVnode, insertedVnodeQueue)
+        // 获取下一组开始节点
         oldStartVnode = oldCh[++oldStartIdx]
         newStartVnode = newCh[++newStartIdx]
       } else if (sameVnode(oldEndVnode, newEndVnode)) {
+        // 直接将该VNode节点将那些patchVnode
         patchVnode(oldEndVnode, newEndVnode, insertedVnodeQueue)
+         // 获取下一组结束节点
         oldEndVnode = oldCh[--oldEndIdx]
         newEndVnode = newCh[--newEndIdx]
       } else if (sameVnode(oldStartVnode, newEndVnode)) { // Vnode moved right
+        // 进行patchVnode 把老的开始节点移动到最后
         patchVnode(oldStartVnode, newEndVnode, insertedVnodeQueue)
         canMove && nodeOps.insertBefore(parentElm, oldStartVnode.elm, nodeOps.nextSibling(oldEndVnode.elm))
+        // 移动游标 获取下一组节点
         oldStartVnode = oldCh[++oldStartIdx]
         newEndVnode = newCh[--newEndIdx]
       } else if (sameVnode(oldEndVnode, newStartVnode)) { // Vnode moved left
+        // 进行patchVnode 把老的结束节点移动到最前面
         patchVnode(oldEndVnode, newStartVnode, insertedVnodeQueue)
         canMove && nodeOps.insertBefore(parentElm, oldEndVnode.elm, oldStartVnode.elm)
         oldEndVnode = oldCh[--oldEndIdx]
         newStartVnode = newCh[++newStartIdx]
       } else {
+        // 从新的节点开头获取一个 去老的节点中查找相同节点
+        // 先找新开始节点的key和老节点相同的索引，如果没找到再通知sameVnode找
         if (isUndef(oldKeyToIdx)) oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx)
         idxInOld = isDef(newStartVnode.key)
           ? oldKeyToIdx[newStartVnode.key]
           : findIdxInOld(newStartVnode, oldCh, oldStartIdx, oldEndIdx)
+          // 如果没有找到
         if (isUndef(idxInOld)) { // New element
+          // 创建节点并插入到最前面
           createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm)
         } else {
+          // 获取要移动的老节点
           vnodeToMove = oldCh[idxInOld]
           /* istanbul ignore if */
           if (process.env.NODE_ENV !== 'production' && !vnodeToMove) {
@@ -428,22 +451,30 @@ export function createPatchFunction (backend) {
               'Make sure each v-for item has a unique key.'
             )
           }
+          // 如果使用newStartVnode找到相同的老节点
           if (sameVnode(vnodeToMove, newStartVnode)) {
+            // 执行patchVnode 并且将找到的老节点移动到最前面
             patchVnode(vnodeToMove, newStartVnode, insertedVnodeQueue)
             oldCh[idxInOld] = undefined
             canMove && nodeOps.insertBefore(parentElm, vnodeToMove.elm, oldStartVnode.elm)
           } else {
             // same key but different element. treat as new element
+            // 如果key相同 但是是不同的元素 创建新元素
             createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm)
           }
         }
         newStartVnode = newCh[++newStartIdx]
       }
     }
+    
     if (oldStartIdx > oldEndIdx) {
+      // 当结束时 ，老节点遍历完，但是新节点还没有
+      // 说明新节点比老节点多，把剩下的新节点插入到老节点的后面
       refElm = isUndef(newCh[newEndIdx + 1]) ? null : newCh[newEndIdx + 1].elm
       addVnodes(parentElm, refElm, newCh, newStartIdx, newEndIdx, insertedVnodeQueue)
     } else if (newStartIdx > newEndIdx) {
+      // 当结束时 新节点遍历完 但是老节点没有
+      // 将老节点中剩余的节点批量删除
       removeVnodes(parentElm, oldCh, oldStartIdx, oldEndIdx)
     }
   }
@@ -627,8 +658,13 @@ export function createPatchFunction (backend) {
       return node.nodeType === (vnode.isComment ? 8 : 3)
     }
   }
+  // 函数柯里化，让一个函数返回一个函数
+  // createPatchFunction({nodeOps,modules}) 传入平台相关的两个参数
 
+  // core中的createPatchFunction(backend)，const {modules,nodeOps} = backend
+  // core 中方法和平台无关，传入两个参数后，可以在上面的函数中使用这两个参数
   return function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
+    // 新的VNode不存在
     if (isUndef(vnode)) {
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
       return
@@ -636,17 +672,24 @@ export function createPatchFunction (backend) {
 
     let isInitialPatch = false
     const insertedVnodeQueue = []
-
     if (isUndef(oldVnode)) {
+      // 老的VNode不存在
       // empty mount (likely as component), create new root element
+      // 此时只是创建了DOM，放置在内存中 但是没有挂载到DOM树上
       isInitialPatch = true
+      // 创建新的VNode
       createElm(vnode, insertedVnodeQueue, parentElm, refElm)
     } else {
+      // 新的和老的VNode都存在，更新
       const isRealElement = isDef(oldVnode.nodeType)
+      // 判断参数1是否是真实的DOM，不是真实的DOM
       if (!isRealElement && sameVnode(oldVnode, vnode)) {
         // patch existing root node
+        // 更新操作 diff算法
         patchVnode(oldVnode, vnode, insertedVnodeQueue, removeOnly)
       } else {
+        // 第一个参数是真实DOM 创建VNode
+        // 初始化
         if (isRealElement) {
           // mounting to a real element
           // check if this is server-rendered content and if we can perform
@@ -671,11 +714,13 @@ export function createPatchFunction (backend) {
           }
           // either not server-rendered, or hydration failed.
           // create an empty node and replace it
+          // 将真实DOM转换成VNode对象存储到oldVNode中
           oldVnode = emptyNodeAt(oldVnode)
         }
         // replacing existing element
         const oldElm = oldVnode.elm
         const parentElm = nodeOps.parentNode(oldElm)
+        // 将VNode转换成真实DOM 挂载到parentElm中
         createElm(
           vnode,
           insertedVnodeQueue,
@@ -716,7 +761,7 @@ export function createPatchFunction (backend) {
             ancestor = ancestor.parent
           }
         }
-
+        // 移除oldVNode
         if (isDef(parentElm)) {
           removeVnodes(parentElm, [oldVnode], 0, 0)
         } else if (isDef(oldVnode.tag)) {
@@ -724,7 +769,7 @@ export function createPatchFunction (backend) {
         }
       }
     }
-
+    // isInitialPatch 表示是否挂载到DOM树上，还是没有挂载到DOM树上，只是放在内存中
     invokeInsertHook(vnode, insertedVnodeQueue, isInitialPatch)
     return vnode.elm
   }
