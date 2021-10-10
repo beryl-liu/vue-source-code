@@ -42,6 +42,7 @@ export function initExtend (Vue: GlobalAPI) {
       // 调用_init初始化
       this._init(options)
     }
+    // 原型继承自vue 所以sub可以继承vue的_init方法
     Sub.prototype = Object.create(Super.prototype)
     Sub.prototype.constructor = Sub
     Sub.cid = cid++

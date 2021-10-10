@@ -100,7 +100,7 @@ export function parse (
       inPre = false
     }
   }
-
+  // 对模板进行解析
   parseHTML(template, {
     warn,
     expectHTML: options.expectHTML,
